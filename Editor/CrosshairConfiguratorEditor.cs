@@ -24,6 +24,15 @@ public class CrosshairConfiguratorEditor : Editor
         if (!_useGlobalSettings.boolValue)
         {
             EditorGUILayout.PropertyField(config);
+            EditorGUI.indentLevel++;
+            CrosshairConfiguration configuration = (CrosshairConfiguration)config.objectReferenceValue;
+            configuration.distance = EditorGUILayout.FloatField("Distance", configuration.distance);
+            configuration.width = EditorGUILayout.FloatField("Width", configuration.width);
+            configuration.length = EditorGUILayout.FloatField("Length", configuration.length);
+            configuration.dot = EditorGUILayout.Toggle("Dot", configuration.dot);
+            configuration.tshaped = EditorGUILayout.Toggle("Tshaped", configuration.tshaped);
+            configuration.color = EditorGUILayout.ColorField("Color", configuration.color);
+            EditorGUI.indentLevel--;
         }
 
         (target as CrosshairConfigurator).ApplyCrosshair();

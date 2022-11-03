@@ -6,22 +6,39 @@ namespace SmartCrosshair
 {
     public class CrosshairConfigurator : MonoBehaviour
     {
+        #region Variables
         [SerializeField] private bool _useGlobalSettings = true;
         [SerializeField] private CrosshairConfiguration config;
 
-        private static CrosshairConfiguration s_config;
-        private Container _container;
-        private bool _initialized = false;
+        private static CrosshairConfiguration s_globalConfig;
         private static List<CrosshairConfigurator> instances;
 
-        public void ApplySettings(CrosshairConfiguration _config)
+        private Container _container;
+        #endregion
+
+        #region Config set
+        /// <summary>
+        /// Set config to object
+        /// </summary>
+        /// <param name="_config">Config to set</param>
+        public void SetConfig(CrosshairConfiguration _config)
         {
             config = _config;
-            s_config = config;
+            s_globalConfig = config;
             ApplyCrosshair();
         }
 
-        public void ApplySettings(Mode _mode, float _distance, float _width, float _length, bool _dot, bool _tshaped, Color _color)
+        /// <summary>
+        /// Create, set and get config
+        /// </summary>
+        /// <param name="_mode"></param>
+        /// <param name="_distance"></param>
+        /// <param name="_width"></param>
+        /// <param name="_length"></param>
+        /// <param name="_dot"></param>
+        /// <param name="_tshaped"></param>
+        /// <param name="_color"></param>
+        public CrosshairConfiguration SetConfig(Mode _mode, float _distance, float _width, float _length, bool _dot, bool _tshaped, Color _color)
         {
             config = new CrosshairConfiguration();
             config.mode = _mode;
@@ -31,61 +48,51 @@ namespace SmartCrosshair
             config.dot = _dot;
             config.tshaped = _tshaped;
             config.color = _color;
-            s_config = config;
+            s_globalConfig = config;
             ApplyCrosshair();
+            return config;
         }
+        #endregion
 
-        public static void ApplyGlobalSettings(CrosshairConfiguration _config)
+        #region Global config set
+        /// <summary>
+        /// Set global config
+        /// </summary>
+        /// <param name="_config">Config to set</param>
+        public static void SetGlobalConfig(CrosshairConfiguration _config)
         {
-            s_config = _config;
+            s_globalConfig = _config;
             ApplyGlobalConfig();
         }
 
-        public static void ApplyGlobalSettings(Mode _mode, float _distance, float _width, float _length, bool _dot, bool _tshaped, Color _color)
+        /// <summary>
+        /// Create, set and get global config
+        /// </summary>
+        /// <param name="_mode"></param>
+        /// <param name="_distance"></param>
+        /// <param name="_width"></param>
+        /// <param name="_length"></param>
+        /// <param name="_dot"></param>
+        /// <param name="_tshaped"></param>
+        /// <param name="_color"></param>
+        public static void SetGlobalConfig(Mode _mode, float _distance, float _width, float _length, bool _dot, bool _tshaped, Color _color)
         {
-            s_config = new CrosshairConfiguration();
-            s_config.mode = _mode;
-            s_config.distance = _distance;
-            s_config.width = _width;
-            s_config.length = _length;
-            s_config.dot = _dot;
-            s_config.tshaped = _tshaped;
-            s_config.color = _color;
+            s_globalConfig = new CrosshairConfiguration();
+            s_globalConfig.mode = _mode;
+            s_globalConfig.distance = _distance;
+            s_globalConfig.width = _width;
+            s_globalConfig.length = _length;
+            s_globalConfig.dot = _dot;
+            s_globalConfig.tshaped = _tshaped;
+            s_globalConfig.color = _color;
             ApplyGlobalConfig();
         }
+        #endregion
 
-        private static void ApplyGlobalConfig()
-        {
-            CleanupInstances();
-            foreach (var item in instances)
-                if (item._useGlobalSettings) item.config = s_config;
-        }
-
-        private void Start()
-        {
-            if (s_config != null && _useGlobalSettings)
-            {
-                config = s_config;
-            }
-            Initialize();
-        }
-
-        private void Initialize()
-        {
-            _container = GetComponentInChildren<Container>();
-            CleanupInstances();
-            instances.Add(this);
-            _initialized = true;
-        }
-
-        private static void CleanupInstances()
-        {
-            List<CrosshairConfigurator> temp = instances;
-            instances.Clear();
-            foreach (CrosshairConfigurator item in temp)
-                if (item != null) instances.Add(item);
-        }
-
+        #region Public methods
+        /// <summary>
+        /// Update values for UI
+        /// </summary>
         public void ApplyCrosshair()
         {
 #if UNITY_EDITOR
@@ -118,5 +125,46 @@ namespace SmartCrosshair
             if (config.dot != _container.dot.enabled) _container.dot.enabled = config.dot;
             if (config.tshaped != !_container.up.enabled) _container.up.enabled = !config.tshaped;
         }
+        #endregion
+
+        #region Private methods
+        /// <summary>
+        /// Apply global config to all instances
+        /// </summary>
+        private static void ApplyGlobalConfig()
+        {
+            CleanupInstances();
+            foreach (var item in instances)
+                if (item._useGlobalSettings) item.config = s_globalConfig;
+        }
+
+        private void Start()
+        {
+            // If we should use global config and it's not null set local config to it
+            if (s_globalConfig != null && _useGlobalSettings)
+            {
+                config = s_globalConfig;
+            }
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            _container = GetComponentInChildren<Container>();
+            CleanupInstances();
+            instances.Add(this);
+        }
+
+        /// <summary>
+        /// Clean instances list from null objects
+        /// </summary>
+        private static void CleanupInstances()
+        {
+            List<CrosshairConfigurator> temp = instances;
+            instances.Clear();
+            foreach (CrosshairConfigurator item in temp)
+                if (item != null) instances.Add(item);
+        }
+        #endregion
     }
 }
